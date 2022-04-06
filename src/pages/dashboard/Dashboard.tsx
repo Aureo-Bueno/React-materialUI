@@ -1,4 +1,4 @@
-import { ToolBar } from "../../shared/components";
+import { ToolList } from "../../shared/components";
 import { LayoutBasePage } from "../../shared/layouts";
 
 
@@ -8,7 +8,7 @@ export const Dashboard = () => {
         <LayoutBasePage 
           title='Página Inicial' 
           toolBar={(
-                <ToolBar 
+                <ToolList 
                    viewInputSearch    
                    textButtonNew='Nova'
                 />

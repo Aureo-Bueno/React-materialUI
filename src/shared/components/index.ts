@@ -1,2 +1,2 @@
 export * from './SideBar/SideBar';
-export * from './ToolBar/ToolBar';
+export * from './ToolList/ToolList';
