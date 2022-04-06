@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Icon, Paper, useTheme } from "@mui/material";
+import { Box, Button, Divider, Icon, Paper, Skeleton, useTheme } from "@mui/material";
 
 interface IToolDetailProps{
   textButtonNew?: string;
@@ -7,6 +7,13 @@ interface IToolDetailProps{
   viewButtonDelete?: boolean;
   viewButtonSave?: boolean;
   viewButtonSaveAndBack?: boolean;
+
+  viewButtonNewLoad?: boolean,
+  viewButtonBackLoad?: boolean,
+  viewButtonDeleteLoad?: boolean,
+  viewButtonSaveLoad?: boolean,
+  viewButtonSaveAndBackLoad?: boolean,
+
 
   onClickNew?: () => void;
   onClickBack?: () => void;
@@ -22,6 +29,12 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
     viewButtonDelete = true,
     viewButtonSave = true,
     viewButtonSaveAndBack = false,
+
+    viewButtonNewLoad = false,
+    viewButtonBackLoad = false,
+    viewButtonDeleteLoad = false,
+    viewButtonSaveLoad = false,
+    viewButtonSaveAndBackLoad = false,
 
     onClickNew,
     onClickBack,
@@ -41,7 +54,7 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
           alignItems="center"
           component={Paper}
         >
-            {viewButtonSave && (<Button
+            {(viewButtonSave && !viewButtonSaveLoad ) && (<Button
                     color='primary'
                     disableElevation
                     variant='contained'
@@ -49,7 +62,12 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
                     startIcon={<Icon>save</Icon>}
                 >Salvar</Button>
             )}
-            {viewButtonSaveAndBack && (<Button
+
+            {viewButtonSaveLoad && (
+                <Skeleton width={110} height={60} />
+            )}
+            
+            {(viewButtonSaveAndBack && !viewButtonSaveAndBackLoad ) && (<Button
                     color='primary'
                     disableElevation
                     variant='outlined'
@@ -57,7 +75,12 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
                     startIcon={<Icon>save</Icon>}
                 >Salvar e Voltar</Button>
             )}
-            {viewButtonDelete && (<Button
+
+           { viewButtonSaveAndBackLoad &&( 
+              <Skeleton width={180} height={60} />
+           )}
+
+            {(viewButtonDelete && !viewButtonDeleteLoad) && (<Button
                     color='primary'
                     disableElevation
                     variant='outlined'
@@ -65,7 +88,12 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
                     startIcon={<Icon>delete</Icon>}
                 >Apagar</Button>
             )}
-            {viewButtonNew && (<Button
+            
+           {viewButtonDeleteLoad &&( 
+             <Skeleton width={110} height={60} />
+           )}
+            
+            {(viewButtonNew && !viewButtonNewLoad) && (<Button
                     color='primary'
                     disableElevation
                     variant='outlined'
@@ -74,15 +102,23 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
                 >{textButtonNew}</Button>
             )}
 
+            {viewButtonNewLoad &&(
+              <Skeleton width={110} height={60} />
+            )}
             <Divider variant='middle' orientation='vertical' />
+            
 
-            {viewButtonBack &&(<Button
+
+            {(viewButtonBack && !viewButtonBackLoad) &&(<Button
                     color='primary'
                     disableElevation
                     variant='outlined'
                     onClick={onClickBack}
                     startIcon={<Icon>arrow_back</Icon>}
                 >Voltar</Button>
+            )}
+            {viewButtonBackLoad &&(
+              <Skeleton width={110} height={60} />
             )}
         </Box>
     );
