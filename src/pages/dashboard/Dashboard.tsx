@@ -8,7 +8,7 @@ export const Dashboard = () => {
         <LayoutBasePage 
           title='Página Inicial' 
           toolBar={(
-                <ToolDetail viewButtonSaveAndBack viewButtonSaveAndBackLoad />
+                <ToolDetail viewButtonNew viewButtonSaveAndBack viewButtonSaveAndBackLoad viewButtonBack={false} />
             )}
         >
             Testando

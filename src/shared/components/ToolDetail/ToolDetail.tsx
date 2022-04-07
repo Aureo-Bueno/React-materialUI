@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Icon, Paper, Skeleton, useTheme } from "@mui/material";
+import { Box, Button, Divider, Icon, Paper, Skeleton, Theme, Typography, useMediaQuery, useTheme } from "@mui/material";
 
 interface IToolDetailProps{
   textButtonNew?: string;
@@ -42,6 +42,9 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
     onClickSave,
     onClickSaveAndBack,
 }) => {
+    const smDown = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+    const mdDown = useMediaQuery((theme: Theme) =>theme.breakpoints.down('md'));
+
     const theme = useTheme();
     return (
         <Box 
@@ -54,68 +57,95 @@ export const ToolDetail: React.FC<IToolDetailProps> = ({
           alignItems="center"
           component={Paper}
         >
-            {(viewButtonSave && !viewButtonSaveLoad ) && (<Button
+            {(viewButtonSave && !viewButtonSaveLoad ) && (
+                <Button
                     color='primary'
                     disableElevation
                     variant='contained'
                     onClick={onClickSave}
                     startIcon={<Icon>save</Icon>}
-                >Salvar</Button>
+                >
+                  <Typography variant='button' whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">
+                     Salvar
+                  </Typography>
+                </Button>
             )}
 
             {viewButtonSaveLoad && (
                 <Skeleton width={110} height={60} />
             )}
             
-            {(viewButtonSaveAndBack && !viewButtonSaveAndBackLoad ) && (<Button
+            {(viewButtonSaveAndBack && !viewButtonSaveAndBackLoad && !smDown && !mdDown) && (
+                <Button
                     color='primary'
                     disableElevation
                     variant='outlined'
                     onClick={onClickSaveAndBack}
                     startIcon={<Icon>save</Icon>}
-                >Salvar e Voltar</Button>
+                >
+                   <Typography variant='button' whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">
+                    Salvar e Voltar
+                   </Typography>
+                </Button>
             )}
 
-           { viewButtonSaveAndBackLoad &&( 
+           { (viewButtonSaveAndBackLoad && !smDown && !mdDown) &&( 
               <Skeleton width={180} height={60} />
            )}
 
-            {(viewButtonDelete && !viewButtonDeleteLoad) && (<Button
+            {(viewButtonDelete && !viewButtonDeleteLoad) && (
+                <Button
                     color='primary'
                     disableElevation
                     variant='outlined'
                     onClick={onClickDelete}
                     startIcon={<Icon>delete</Icon>}
-                >Apagar</Button>
+                >
+                   <Typography variant='button' whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">
+                     Apagar
+                   </Typography>
+                </Button>
             )}
             
            {viewButtonDeleteLoad &&( 
              <Skeleton width={110} height={60} />
            )}
             
-            {(viewButtonNew && !viewButtonNewLoad) && (<Button
+            {(viewButtonNew && !viewButtonNewLoad && !smDown) && (
+                <Button
                     color='primary'
                     disableElevation
                     variant='outlined'
                     onClick={onClickNew}
                     startIcon={<Icon>add</Icon>}
-                >{textButtonNew}</Button>
+                >
+                   <Typography variant='button' whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">
+                    {textButtonNew}
+                   </Typography>
+                </Button>
             )}
 
-            {viewButtonNewLoad &&(
+            {(viewButtonNewLoad && !smDown) && (
               <Skeleton width={110} height={60} />
             )}
-            <Divider variant='middle' orientation='vertical' />
             
+            {viewButtonBack && (viewButtonNew || viewButtonDelete || viewButtonSave || viewButtonSaveAndBack) && (
+              <Divider variant='middle' orientation='vertical' />
+            )}
 
 
-            {(viewButtonBack && !viewButtonBackLoad) &&(<Button
+            {(viewButtonBack && !viewButtonBackLoad) &&(
+                <Button
                     color='primary'
                     disableElevation
                     variant='outlined'
                     onClick={onClickBack}
                     startIcon={<Icon>arrow_back</Icon>}
-                >Voltar</Button>
+                >
+                   <Typography variant='button' whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden">
+                       Voltar
+                   </Typography>
+                </Button>
             )}
             {viewButtonBackLoad &&(
               <Skeleton width={110} height={60} />
