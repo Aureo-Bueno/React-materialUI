@@ -1,4 +1,5 @@
 import { Box, Button, Icon, Paper, TextField, useTheme } from "@mui/material";
+import { Environment } from "../../environment";
 
 interface IToolListProps{
     textSearch?: string;
@@ -33,7 +34,7 @@ export const ToolList: React.FC<IToolListProps> = ({
               <TextField
                     size="small"
                     value={textSearch}
-                    placeholder='Pesquisar...'
+                    placeholder={Environment.INPUT_SEARCH}
                     onChange={(e) => alterTextSearch?.(e.target.value)}
                />
             )}
