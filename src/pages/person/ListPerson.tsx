@@ -1,7 +1,8 @@
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { LinearProgress, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom"
 import { ToolList } from "../../shared/components"
+import { Environment } from "../../shared/environment";
 import { useDebounce } from "../../shared/hooks";
 import { LayoutBasePage } from "../../shared/layouts"
 import { IListPerson, PersonService } from "../../shared/services/api/person/PersonService";
@@ -69,6 +70,21 @@ export const ListPerson: React.FC = () => {
                             </TableRow>
                         ))}
                     </TableBody>
+                    
+                        {totCount === 0 && !isLoading && (
+                            <caption>{Environment.LIST_NULL}</caption>
+                        )}
+                    
+                    <TableFooter>
+                        {isLoading && (
+                            <TableRow>
+                                <TableCell colSpan={3}>
+                                    <LinearProgress variant='indeterminate' />
+
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableFooter>
                 </Table>
             </TableContainer>
 
