@@ -1,9 +1,10 @@
 {
-    "pessoas":[
+    "person":[
         {
             "id": 1,
-            "name": "Aureo",
-            "lastname": "Bueno"
+            "email": "aureo@live.com",
+            "cityId": 1,
+            "nameComplete": "Aureo Bueno"
         }
     ]
 }
