@@ -1,4 +1,4 @@
-import { LinearProgress, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
+import { LinearProgress, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom"
 import { ToolList } from "../../shared/components"
@@ -21,11 +21,15 @@ export const ListPerson: React.FC = () => {
         return searchParams.get('search') || '';
     }, [searchParams]);
 
+    const page = useMemo(() => {
+        return Number(searchParams.get('page') || '1');
+    }, [searchParams]);
+
     useEffect(() => {
         setIsLoading(true);
 
         debounce(() => {
-            PersonService.getAll(1, search)
+            PersonService.getAll(page, search)
                 .then((result) => {
                     setIsLoading(false);
                     if (result instanceof Error) {
@@ -48,7 +52,7 @@ export const ListPerson: React.FC = () => {
                     textButtonNew='Nova Pessoa'
                     viewInputSearch
                     textSearch={search}
-                    alterTextSearch={text => setSearchParams({ search: text }, { replace: true })}
+                    alterTextSearch={text => setSearchParams({ search: text, page: '1'}, { replace: true })}
                 />
             }
         >
@@ -70,17 +74,28 @@ export const ListPerson: React.FC = () => {
                             </TableRow>
                         ))}
                     </TableBody>
-                    
-                        {totCount === 0 && !isLoading && (
-                            <caption>{Environment.LIST_NULL}</caption>
-                        )}
-                    
+
+                    {totCount === 0 && !isLoading && (
+                        <caption>{Environment.LIST_NULL}</caption>
+                    )}
+
                     <TableFooter>
                         {isLoading && (
                             <TableRow>
                                 <TableCell colSpan={3}>
                                     <LinearProgress variant='indeterminate' />
 
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        {(totCount > 0 && totCount > Environment.LIMIT_LINES) && (
+                            <TableRow>
+                                <TableCell colSpan={3}>
+                                    <Pagination
+                                        page={page}
+                                        count={Math.ceil(totCount / Environment.LIMIT_LINES)}
+                                        onChange={(_, newPage) => setSearchParams({ search, page: newPage.toString() }, { replace: true })}
+                                    />
                                 </TableCell>
                             </TableRow>
                         )}
