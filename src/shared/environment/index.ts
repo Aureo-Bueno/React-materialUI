@@ -4,7 +4,7 @@ export const Environment = {
     /**
      * DEFINE A QUANTIDADE DE LINHAS A SER CARREGADA POR PADRÃO NAS LISTAGENS
      */
-    LIMIT_LINES: 10,
+    LIMIT_LINES: 5,
     
     /**
      * PLACEHOLDER EXIBIDO NOS INPUTS

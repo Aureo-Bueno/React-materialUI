@@ -1,6 +1,6 @@
-import { LinearProgress, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
+import { Icon, IconButton, LinearProgress, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { ToolList } from "../../shared/components"
 import { Environment } from "../../shared/environment";
 import { useDebounce } from "../../shared/hooks";
@@ -12,6 +12,7 @@ export const ListPerson: React.FC = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
     const { debounce } = useDebounce();
+    const navigate = useNavigate();
 
     const [rows, setRows] = useState<IListPerson[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +43,27 @@ export const ListPerson: React.FC = () => {
                     }
                 });
         });
-    }, [search]);
+    }, [search, page]);
+
+    const handleDelete = (id: number) => {
+        
+        // eslint-disable-next-line no-restricted-globals
+        if (confirm('Realmente deseja apagar?')) {
+            PersonService.deleteById(id)
+            .then(result => {
+                if (result instanceof Error) {
+                    alert(result.message);                    
+                } else{
+                    setRows(oldRows => {
+                        return[
+                            ...oldRows.filter(oldRow => oldRow.id !== id),
+                        ];
+                    });
+                    alert('Registro apagado com sucesso');
+                }
+            });
+        }
+    }
 
     return (
         <LayoutBasePage
@@ -68,7 +89,14 @@ export const ListPerson: React.FC = () => {
                     <TableBody>
                         {rows.map(row => (
                             <TableRow key={row.id}>
-                                <TableCell>Ações</TableCell>
+                                <TableCell>
+                                    <IconButton size="small" onClick={() => handleDelete(row.id)}>
+                                        <Icon>delete</Icon>
+                                    </IconButton>
+                                    <IconButton size="small" onClick={() => navigate(`/person/detail/${row.id}`)}>
+                                        <Icon>edit</Icon>
+                                    </IconButton>
+                                </TableCell>
                                 <TableCell>{row.nameComplete}</TableCell>
                                 <TableCell>{row.email}</TableCell>
                             </TableRow>

@@ -4,10 +4,10 @@ import { Dashboard , ListPerson} from '../pages';
 import { useDrawerContext } from '../shared/context';
 
 export const AppRoutes = () => { 
-    const {setDrawerOption} = useDrawerContext();
+    const {setDrawerOptions} = useDrawerContext();
 
     useEffect(() => {
-        setDrawerOption([
+        setDrawerOptions([
             {
                 icon: 'home',
                 path: '/home',
@@ -25,7 +25,7 @@ export const AppRoutes = () => {
         <Routes>
             <Route path="/home" element={<Dashboard/>} />
             <Route path="/person" element={<ListPerson/>} />
-            {/**  <Route path="/cities/detalhe/:id" element={<ListCity/>} /> */} 
+            <Route path="/person/detail/:id" element={<p>Detalhe</p>} />
 
             <Route path="*" element={<Navigate to="/home"/>} />
 
