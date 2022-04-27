@@ -73,6 +73,7 @@ export const ListPerson: React.FC = () => {
                     textButtonNew='Nova Pessoa'
                     viewInputSearch
                     textSearch={search}
+                    onClickNew={() => navigate('/person/detail/new')}
                     alterTextSearch={text => setSearchParams({ search: text, page: '1'}, { replace: true })}
                 />
             }
