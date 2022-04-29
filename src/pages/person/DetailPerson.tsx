@@ -1,40 +1,79 @@
+import { LinearProgress } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ToolDetail } from "../../shared/components";
 import { LayoutBasePage } from "../../shared/layouts";
+import { PersonService } from "../../shared/services/api/person/PersonService";
 
 
 export const DetailPerson: React.FC = () => {
-    const { id = 'new' } = useParams<'id'>()
-    const navigate = useNavigate();
+  const { id = 'new' } = useParams<'id'>()
+  const navigate = useNavigate();
 
-    const handleSave = () => {
-        console.log('save');
-    };
+  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState('');
 
-    const handleDelete = () => {
-        console.log('delete');
-    };
+  useEffect(() => {
+    if (id !== 'new') {
+      setIsLoading(true);
 
-    return(
-        <LayoutBasePage 
-          title='Detalhe de Pessoa'
-          toolBar={
-              <ToolDetail 
-                textButtonNew='Nova'
-                viewButtonSaveAndBack
-                viewButtonNew={id !== 'new'}
-                viewButtonDelete={id !== 'new'}
-
-                onClickSave={handleSave}
-                onClickSaveAndBack={handleSave}
-                onClickDelete={handleDelete}
-                onClickBack={() => navigate('/person')}
-                onClickNew={() => navigate('/person/detail/new')}
-              />
+      PersonService.getById(Number(id))
+        .then((result) => {
+          setIsLoading(false);
+          if (result instanceof Error) {
+            alert(result.message);
+            navigate('/person');
+          } else {
+            setName(result.nameComplete);
+            console.log(result);
           }
-        >
-          <p>Detalhes da Pessoa {id}</p>
-        </LayoutBasePage>
-       
-    );
+        })
+    }
+  }, [id]);
+
+  const handleSave = () => {
+    console.log('save');
+  };
+
+  const handleDelete = (id: number) => {
+    // eslint-disable-next-line no-restricted-globals
+    if (confirm('Realmente deseja apagar?')) {
+      PersonService.deleteById(id)
+        .then(result => {
+          if (result instanceof Error) {
+            alert(result.message);
+          } else {
+            alert('Registro apagado com sucesso');
+            navigate('/person');
+          }
+        });
+    }
+  }
+
+
+  return (
+    <LayoutBasePage
+      title={id === 'new' ? 'Nova Pessoa' : name}
+      toolBar={
+        <ToolDetail
+          textButtonNew='Nova'
+          viewButtonSaveAndBack
+          viewButtonNew={id !== 'new'}
+          viewButtonDelete={id !== 'new'}
+
+          onClickSave={handleSave}
+          onClickSaveAndBack={handleSave}
+          onClickBack={() => navigate('/person')}
+          onClickDelete={() => handleDelete(Number(id))}
+          onClickNew={() => navigate('/person/detail/new')}
+        />
+      }
+    >
+      {isLoading && (
+        <LinearProgress variant="indeterminate" />
+      )}
+      <p>Detalhes da Pessoa {id}</p>
+    </LayoutBasePage>
+
+  );
 };

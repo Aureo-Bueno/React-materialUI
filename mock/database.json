@@ -1,10 +1,10 @@
 {
   "person": [
     {
-        "id": 1,
-        "email": "aureoalexandre@outlook.com",
-        "cityId": 1,
-        "nameComplete": "Aureo Bueno"
+      "id": 1,
+      "email": "aureoalexandre@outlook.com",
+      "cityId": 1,
+      "nameComplete": "Aureo Bueno"
     }
   ]
 }
