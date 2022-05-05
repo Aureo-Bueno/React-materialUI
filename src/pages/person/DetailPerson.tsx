@@ -1,16 +1,23 @@
 import { LinearProgress } from "@mui/material";
+import { FormHandles, Scope } from "@unform/core";
 import { Form } from "@unform/web";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ToolDetail } from "../../shared/components";
 import { VTextField } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
-import { PersonService } from "../../shared/services/api/person/PersonService";
+import { IDetailPerson, PersonService } from "../../shared/services/api/person/PersonService";
 
-
+interface IFormData{
+  email: string;
+  cityId: string;
+  nameComplete: string;
+}
 export const DetailPerson: React.FC = () => {
   const { id = 'new' } = useParams<'id'>()
   const navigate = useNavigate();
+
+  const formRef = useRef<FormHandles>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState('');
@@ -33,8 +40,8 @@ export const DetailPerson: React.FC = () => {
     }
   }, [id]);
 
-  const handleSave = () => {
-    console.log('save');
+  const handleSave = (data: IFormData) => {
+    console.log(data);
   };
 
   const handleDelete = (id: number) => {
@@ -63,8 +70,8 @@ export const DetailPerson: React.FC = () => {
           viewButtonNew={id !== 'new'}
           viewButtonDelete={id !== 'new'}
 
-          onClickSave={handleSave}
-          onClickSaveAndBack={handleSave}
+          onClickSave={() => formRef.current?.submitForm()}
+          onClickSaveAndBack={() => formRef.current?.submitForm()}
           onClickBack={() => navigate('/person')}
           onClickDelete={() => handleDelete(Number(id))}
           onClickNew={() => navigate('/person/detail/new')}
@@ -72,12 +79,22 @@ export const DetailPerson: React.FC = () => {
       }
     >
 
-      <Form onSubmit={(data) => console.log(data)}>
+      <Form ref={formRef} onSubmit={handleSave}>
 
         <VTextField name='nameComplete' />
+        <VTextField name='email' />
+        <VTextField name='cityId' />
 
+        {/* {[1, 2, 3, 4].map((_, index) => (
+          <Scope key={} path={`addrees[${index}]`}>
+            <VTextField name='street' />
+            <VTextField name='number' />
+            <VTextField name='state' />
+            <VTextField name='city' />
+            <VTextField name='country' />
+          </Scope>
+        ))} */}
 
-        <button type='submit'>Submit</button>
       </Form>
 
     </LayoutBasePage>
