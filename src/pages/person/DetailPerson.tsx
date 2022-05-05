@@ -10,7 +10,7 @@ import { IDetailPerson, PersonService } from "../../shared/services/api/person/P
 
 interface IFormData{
   email: string;
-  cityId: string;
+  cityId: number;
   nameComplete: string;
 }
 export const DetailPerson: React.FC = () => {
@@ -34,14 +34,38 @@ export const DetailPerson: React.FC = () => {
             navigate('/person');
           } else {
             setName(result.nameComplete);
-            console.log(result);
+            formRef.current?.setData(result);
           }
         })
     }
   }, [id]);
 
   const handleSave = (data: IFormData) => {
-    console.log(data);
+    setIsLoading(true);
+
+    if(id === 'new'){
+      PersonService
+        .create(data)
+        .then((result) => {
+          setIsLoading(false);
+
+          if (result instanceof Error) {
+            alert(result.message);
+          }else{
+            navigate(`/person/detail/${result}`)
+          }
+        });
+    }else{
+      PersonService
+        .updateById(Number(id), {id: Number(id),...data})
+        .then((result) => {
+          setIsLoading(false);
+
+          if (result instanceof Error) {
+            alert(result.message);
+          }
+        });
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -81,9 +105,9 @@ export const DetailPerson: React.FC = () => {
 
       <Form ref={formRef} onSubmit={handleSave}>
 
-        <VTextField name='nameComplete' />
-        <VTextField name='email' />
-        <VTextField name='cityId' />
+        <VTextField placeholder="Nome Completo..." name='nameComplete' />
+        <VTextField placeholder="E-mail..." name='email' />
+        <VTextField placeholder="Cidade..." name='cityId' />
 
         {/* {[1, 2, 3, 4].map((_, index) => (
           <Scope key={} path={`addrees[${index}]`}>
