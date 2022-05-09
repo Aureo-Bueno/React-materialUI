@@ -2,9 +2,9 @@
   "person": [
     {
       "id": 1,
+      "nameComplete": "Aureo Bueno Azevedo",
       "email": "aureoalexandre@outlook.com",
-      "cityId": 1,
-      "nameComplete": "Aureo Bueno"
+      "cityId": 1
     }
   ]
 }

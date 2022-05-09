@@ -1,4 +1,4 @@
-import { LinearProgress } from "@mui/material";
+import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
 import { FormHandles, Scope } from "@unform/core";
 import { Form } from "@unform/web";
 import { useEffect, useRef, useState } from "react";
@@ -6,9 +6,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ToolDetail } from "../../shared/components";
 import { VTextField } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
-import { IDetailPerson, PersonService } from "../../shared/services/api/person/PersonService";
+import { PersonService } from "../../shared/services/api/person/PersonService";
 
-interface IFormData{
+interface IFormData {
   email: string;
   cityId: number;
   nameComplete: string;
@@ -43,7 +43,7 @@ export const DetailPerson: React.FC = () => {
   const handleSave = (data: IFormData) => {
     setIsLoading(true);
 
-    if(id === 'new'){
+    if (id === 'new') {
       PersonService
         .create(data)
         .then((result) => {
@@ -51,13 +51,13 @@ export const DetailPerson: React.FC = () => {
 
           if (result instanceof Error) {
             alert(result.message);
-          }else{
+          } else {
             navigate(`/person/detail/${result}`)
           }
         });
-    }else{
+    } else {
       PersonService
-        .updateById(Number(id), {id: Number(id),...data})
+        .updateById(Number(id), { id: Number(id), ...data })
         .then((result) => {
           setIsLoading(false);
 
@@ -104,10 +104,56 @@ export const DetailPerson: React.FC = () => {
     >
 
       <Form ref={formRef} onSubmit={handleSave}>
+        <Box margin={1} display="flex" flexDirection="column" component={Paper} variant="outlined">
 
-        <VTextField placeholder="Nome Completo..." name='nameComplete' />
-        <VTextField placeholder="E-mail..." name='email' />
-        <VTextField placeholder="Cidade..." name='cityId' />
+          <Grid container direction="column" padding={2} spacing={2}>
+
+            {isLoading &&(
+              <Grid>
+                <LinearProgress variant='indeterminate' />
+              </Grid>
+            )}
+            <Grid item>
+              <Typography variant="h6">Geral</Typography>
+            </Grid>
+
+            <Grid container item direction="row" spacing={2}>
+              <Grid item xs={12} sm={8} md={6} lg={4} xl={2} >
+                <VTextField
+                  fullWidth
+                  label="Nome Completo"
+                  name='nameComplete'
+                  disabled={isLoading}
+                  onChange={e => setName(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+
+            <Grid container item direction="row" spacing={2}>
+              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
+                <VTextField
+                  fullWidth
+                  label="E-mail"
+                  name='email'
+                  disabled={isLoading}
+                />
+              </Grid>
+            </Grid>
+
+            <Grid container item direction="row" spacing={2}>
+              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
+                <VTextField
+                  fullWidth
+                  label="Cidade"
+                  name='cityId'
+                  disabled={isLoading}
+                />
+              </Grid>
+            </Grid>
+
+          </Grid>
+
+        </Box>
 
         {/* {[1, 2, 3, 4].map((_, index) => (
           <Scope key={} path={`addrees[${index}]`}>
