@@ -1,10 +1,9 @@
 import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
-import { FormHandles, Scope } from "@unform/core";
-import { Form } from "@unform/web";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ToolDetail } from "../../shared/components";
-import { VTextField } from "../../shared/forms";
+import { VTextField, VForm, useVForm } from "../../shared/forms";
+import { VScope } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
 import { PersonService } from "../../shared/services/api/person/PersonService";
 
@@ -14,10 +13,11 @@ interface IFormData {
   nameComplete: string;
 }
 export const DetailPerson: React.FC = () => {
+  const {formRef, save, saveAndClose, isSaveAndClose} = useVForm();
+
   const { id = 'new' } = useParams<'id'>()
   const navigate = useNavigate();
 
-  const formRef = useRef<FormHandles>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState('');
@@ -37,6 +37,12 @@ export const DetailPerson: React.FC = () => {
             formRef.current?.setData(result);
           }
         })
+    }else{
+      formRef.current?.setData({
+        nameComplete: '',
+        email: '',
+        cityId: '',
+      })
     }
   }, [id]);
 
@@ -52,7 +58,11 @@ export const DetailPerson: React.FC = () => {
           if (result instanceof Error) {
             alert(result.message);
           } else {
-            navigate(`/person/detail/${result}`)
+            if (isSaveAndClose()) {
+              navigate('/person');
+            } else {
+              navigate(`/person/detail/${result}`);
+            }
           }
         });
     } else {
@@ -63,6 +73,10 @@ export const DetailPerson: React.FC = () => {
 
           if (result instanceof Error) {
             alert(result.message);
+          }else{
+            if (isSaveAndClose()) {
+              navigate('/person');
+            } 
           }
         });
     }
@@ -94,8 +108,8 @@ export const DetailPerson: React.FC = () => {
           viewButtonNew={id !== 'new'}
           viewButtonDelete={id !== 'new'}
 
-          onClickSave={() => formRef.current?.submitForm()}
-          onClickSaveAndBack={() => formRef.current?.submitForm()}
+          onClickSave={save}
+          onClickSaveAndBack={saveAndClose}
           onClickBack={() => navigate('/person')}
           onClickDelete={() => handleDelete(Number(id))}
           onClickNew={() => navigate('/person/detail/new')}
@@ -103,7 +117,7 @@ export const DetailPerson: React.FC = () => {
       }
     >
 
-      <Form ref={formRef} onSubmit={handleSave}>
+      <VForm ref={formRef} onSubmit={handleSave}>
         <Box margin={1} display="flex" flexDirection="column" component={Paper} variant="outlined">
 
           <Grid container direction="column" padding={2} spacing={2}>
@@ -165,7 +179,7 @@ export const DetailPerson: React.FC = () => {
           </Scope>
         ))} */}
 
-      </Form>
+      </VForm>
 
     </LayoutBasePage>
 
