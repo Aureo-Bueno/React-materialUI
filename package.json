@@ -22,10 +22,11 @@
     "react-router-dom": "6",
     "react-scripts": "5.0.0",
     "typescript": "^4.6.3",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yup": "^0.32.11"
   },
   "scripts": {
-    "start": "BROWSER=none react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "mock": "json-server -w -p 3333 ./mock/database.json",
