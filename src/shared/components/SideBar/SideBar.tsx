@@ -22,7 +22,7 @@ const ListItemLink: React.FC<IListItemLinkProps> = ({to, icon, label, onClick}) 
     };
 
     return (
-        <ListItemButton selected={!!match}  onClick={onClick}>
+        <ListItemButton selected={!!match}  onClick={handleClick}>
             <ListItemIcon>
                 <Icon>{ icon }</Icon>
                 </ListItemIcon>
@@ -52,9 +52,9 @@ export const SideBar: React.FC = ({ children }) => {
                         <List component="nav">
                             {drawerOptions.map(drawerOption =>(
                                 <ListItemLink 
+                                    to={drawerOption.path}
                                     key={drawerOption.path}
                                     icon={drawerOption.icon}
-                                    to={drawerOption.path}
                                     label={drawerOption.label} 
                                     onClick={smDown ? toggleDrawerOpen : undefined} 
                                 />

@@ -6,21 +6,17 @@ import { ToolDetail } from "../../shared/components";
 import { VTextField, VForm, useVForm, IVFormErrors } from "../../shared/forms";
 import { VScope } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
-import { PersonService } from "../../shared/services/api/person/PersonService";
+import { CitiesService } from "../../shared/services/api/cities/CitiesService";
 
 interface IFormData {
-  email: string;
-  cityId: number;
-  nameComplete: string;
+  name: string;
 }
 
 const formValidationSchema: yup.SchemaOf<IFormData> = yup.object().shape({
-  email: yup.string().required().email(),
-  cityId: yup.number().required(),
-  nameComplete: yup.string().required().min(3),
+  name: yup.string().required().min(3),
 });
 
-export const DetailPerson: React.FC = () => {
+export const DetailCity: React.FC = () => {
   const {formRef, save, saveAndClose, isSaveAndClose} = useVForm();
 
   const { id = 'new' } = useParams<'id'>()
@@ -34,35 +30,32 @@ export const DetailPerson: React.FC = () => {
     if (id !== 'new') {
       setIsLoading(true);
 
-      PersonService.getById(Number(id))
+      CitiesService.getById(Number(id))
         .then((result) => {
           setIsLoading(false);
           if (result instanceof Error) {
             alert(result.message);
-            navigate('/person');
+            navigate('/city');
           } else {
-            setName(result.nameComplete);
+            setName(result.name);
             formRef.current?.setData(result);
           }
         })
     }else{
       formRef.current?.setData({
-        nameComplete: '',
-        email: '',
-        cityId: '',
+        name: '',
       })
     }
   }, [id]);
 
   const handleSave = (data: IFormData) => {
-
     formValidationSchema.
       validate(data, {abortEarly: false})
       .then((dataValidate) => {
         setIsLoading(true);
 
         if (id === 'new') {
-          PersonService
+          CitiesService
             .create(dataValidate)
             .then((result) => {
               setIsLoading(false);
@@ -71,14 +64,14 @@ export const DetailPerson: React.FC = () => {
                 alert(result.message);
               } else {
                 if (isSaveAndClose()) {
-                  navigate('/person');
+                  navigate('/city');
                 } else {
-                  navigate(`/person/detail/${result}`);
+                  navigate(`/city/detail/${result}`);
                 }
               }
             });
         } else {
-          PersonService
+          CitiesService
             .updateById(Number(id), { id: Number(id), ...dataValidate })
             .then((result) => {
               setIsLoading(false);
@@ -87,7 +80,7 @@ export const DetailPerson: React.FC = () => {
                 alert(result.message);
               }else{
                 if (isSaveAndClose()) {
-                  navigate('/person');
+                  navigate('/city');
                 } 
               }
             });
@@ -112,13 +105,13 @@ export const DetailPerson: React.FC = () => {
   const handleDelete = (id: number) => {
     // eslint-disable-next-line no-restricted-globals
     if (confirm('Realmente deseja apagar?')) {
-      PersonService.deleteById(id)
+      CitiesService.deleteById(id)
         .then(result => {
           if (result instanceof Error) {
             alert(result.message);
           } else {
             alert('Registro apagado com sucesso');
-            navigate('/person');
+            navigate('/city');
           }
         });
     }
@@ -127,7 +120,7 @@ export const DetailPerson: React.FC = () => {
 
   return (
     <LayoutBasePage
-      title={id === 'new' ? 'Nova Pessoa' : name}
+      title={id === 'new' ? 'Nova Cidade' : name}
       toolBar={
         <ToolDetail
           textButtonNew='Nova'
@@ -137,9 +130,9 @@ export const DetailPerson: React.FC = () => {
 
           onClickSave={save}
           onClickSaveAndBack={saveAndClose}
-          onClickBack={() => navigate('/person')}
+          onClickBack={() => navigate('/city')}
           onClickDelete={() => handleDelete(Number(id))}
-          onClickNew={() => navigate('/person/detail/new')}
+          onClickNew={() => navigate('/city/detail/new')}
         />
       }
     >
@@ -162,32 +155,10 @@ export const DetailPerson: React.FC = () => {
               <Grid item xs={12} sm={8} md={6} lg={4} xl={2} >
                 <VTextField
                   fullWidth
-                  label="Nome Completo"
-                  name='nameComplete'
+                  label="Nome"
+                  name='name'
                   disabled={isLoading}
                   onChange={e => setName(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
-                  label="E-mail"
-                  name='email'
-                  disabled={isLoading}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
-                  label="Cidade"
-                  name='cityId'
-                  disabled={isLoading}
                 />
               </Grid>
             </Grid>
