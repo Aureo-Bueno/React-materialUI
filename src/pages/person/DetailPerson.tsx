@@ -7,6 +7,7 @@ import { VTextField, VForm, useVForm, IVFormErrors } from "../../shared/forms";
 import { VScope } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
 import { PersonService } from "../../shared/services/api/person/PersonService";
+import { AutoCompleteCity } from "./components/AutoCompleteCity";
 
 interface IFormData {
   email: string;
@@ -183,11 +184,8 @@ export const DetailPerson: React.FC = () => {
 
             <Grid container item direction="row" spacing={2}>
               <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
-                  label="Cidade"
-                  name='cityId'
-                  disabled={isLoading}
+                <AutoCompleteCity
+                  isExternalLoading={isLoading}
                 />
               </Grid>
             </Grid>

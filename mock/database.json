@@ -11,6 +11,30 @@
     {
       "name": "Aparecida",
       "id": 1
+    },
+    {
+      "name": "Roseira",
+      "id": 2
+    },
+    {
+      "name": "Guaratingueta",
+      "id": 3
+    },
+    {
+      "name": "Lorena",
+      "id": 4
+    },
+    {
+      "name": "Moreira Cesar",
+      "id": 5
+    },
+    {
+      "name": "Pindamonhangaba",
+      "id": 6
+    },
+    {
+      "name": "Taubate",
+      "id": 7
     }
   ]
 }

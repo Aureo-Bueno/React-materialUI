@@ -12,7 +12,7 @@ export const Environment = {
     INPUT_SEARCH: 'Pesquisar...',
 
     /**
-     * TEXTO EXEIBIDO QUANDO NENHUM REGISTRO É ENCONTRADO NA LISTAGEM
+     * TEXTO EXIBIDO QUANDO NENHUM REGISTRO É ENCONTRADO NA LISTAGEM
      */
     LIST_NULL: 'Nenhum registro encontrado.',
 
