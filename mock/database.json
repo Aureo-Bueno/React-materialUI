@@ -36,5 +36,8 @@
       "name": "Taubate",
       "id": 7
     }
-  ]
+  ],
+  "auth": {
+    "accessToken": "aaaaaaaaa.bbbbbbbbbbb.cccccccc"
+  }
 }
