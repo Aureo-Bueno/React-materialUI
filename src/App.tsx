@@ -3,24 +3,29 @@ import { BrowserRouter } from 'react-router-dom';
 import './shared/forms/TranslateYup'
 
 import { AppRoutes } from './routes';
-import { SideBar } from './shared/components';
-import { DrawerProvider } from './shared/context';
+import { Login, SideBar } from './shared/components';
+import { AuthProvider, DrawerProvider } from './shared/context';
 import { AppThemeProvider } from './shared/context/ThemeContext';
 
 
 export const App = () => {
   return (
-    <AppThemeProvider>
-      <DrawerProvider>
-        <BrowserRouter>
+    <AuthProvider>
+      <AppThemeProvider>
+        <Login>
+          <DrawerProvider>
+            <BrowserRouter>
 
-          <SideBar>
-            <AppRoutes />
-          </SideBar>
-        </BrowserRouter>
+              <SideBar>
+                <AppRoutes />
+              </SideBar>
+            </BrowserRouter>
 
-      </DrawerProvider>
-    </AppThemeProvider>
+          </DrawerProvider>
+        </Login>
+        
+      </AppThemeProvider>
+    </AuthProvider>
   );
 }
 
