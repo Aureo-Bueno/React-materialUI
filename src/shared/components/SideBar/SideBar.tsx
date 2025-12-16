@@ -17,6 +17,7 @@ import {
 } from "../../context";
 import { PropsWithChildren } from "react";
 import { IListItemLinkProps } from "./types";
+import { LogoutOutlined } from "@mui/icons-material";
 
 function ListItemLink({ to, icon, label, onClick }: IListItemLinkProps) {
   const navigate = useNavigate();
@@ -93,6 +94,7 @@ export function SideBar({ children }: PropsWithChildren) {
               </ListItemButton>
 
               <ListItemButton onClick={logout}>
+                <LogoutOutlined />
                 <ListItemText primary="Sair" />
               </ListItemButton>
             </List>

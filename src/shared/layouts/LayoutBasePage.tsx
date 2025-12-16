@@ -2,13 +2,13 @@ import {
   useTheme,
   Typography,
   IconButton,
-  Icon,
   useMediaQuery,
   Theme,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { PropsWithChildren, ReactNode } from "react";
 import { useDrawerContext } from "../context";
+import { MenuOutlined } from "@mui/icons-material";
 
 interface ILayoutBasePageProps {
   title: string;
@@ -37,7 +37,7 @@ export function LayoutBasePage({
       >
         {smDown && (
           <IconButton onClick={toggleDrawerOpen}>
-            <Icon>menu</Icon>
+            <MenuOutlined />
           </IconButton>
         )}
 
