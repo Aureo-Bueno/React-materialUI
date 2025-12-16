@@ -1,31 +1,38 @@
-import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import './shared/forms/TranslateYup'
+import { useEffect } from "react";
+import {
+  AppThemeProvider,
+  AuthProvider,
+  DrawerProvider,
+  useDrawerContext,
+} from "./shared/context";
+import { DRAWER_ROUTES } from "./routes";
+import { Login, SideBar } from "./shared/components";
+import { Outlet } from "react-router-dom";
 
-import { AppRoutes } from './routes';
-import { Login, SideBar } from './shared/components';
-import { AuthProvider, DrawerProvider } from './shared/context';
-import { AppThemeProvider } from './shared/context/ThemeContext';
+function DrawerLayout() {
+  const { setDrawerOptions } = useDrawerContext();
 
+  useEffect(() => {
+    setDrawerOptions(DRAWER_ROUTES);
+  }, [setDrawerOptions]);
 
-export const App = () => {
+  return (
+    <SideBar>
+      <Outlet />
+    </SideBar>
+  );
+}
+
+export function App() {
   return (
     <AuthProvider>
       <AppThemeProvider>
         <Login>
           <DrawerProvider>
-            <BrowserRouter>
-
-              <SideBar>
-                <AppRoutes />
-              </SideBar>
-            </BrowserRouter>
-
+            <DrawerLayout />
           </DrawerProvider>
         </Login>
-        
       </AppThemeProvider>
     </AuthProvider>
   );
 }
-

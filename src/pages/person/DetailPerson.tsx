@@ -1,212 +1,238 @@
-import { Box, Grid, LinearProgress, Paper, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import {
+  Box,
+  Grid,
+  LinearProgress,
+  Paper,
+  Typography,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import * as yup from 'yup';
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ToolDetail } from "../../shared/components";
-import { VTextField, VForm, useVForm, IVFormErrors } from "../../shared/forms";
-import { VScope } from "../../shared/forms";
+import { VTextField, VForm } from "../../shared/forms";
 import { LayoutBasePage } from "../../shared/layouts";
-import { PersonService } from "../../shared/services/api/person/PersonService";
+import {
+  useCreatePerson,
+  useDeletePerson,
+  usePersonById,
+  useUpdatePerson,
+} from "../../shared/hooks";
+import { PersonFormData, PersonSchema } from "../../shared/schemas";
 import { AutoCompleteCity } from "./components/AutoCompleteCity";
 
-interface IFormData {
-  email: string;
-  cityId: number;
-  nameComplete: string;
-}
-
-const formValidationSchema: yup.SchemaOf<IFormData> = yup.object().shape({
-  email: yup.string().required().email(),
-  cityId: yup.number().required(),
-  nameComplete: yup.string().required().min(3),
-});
-
-export const DetailPerson: React.FC = () => {
-  const {formRef, save, saveAndClose, isSaveAndClose} = useVForm();
-
-  const { id = 'new' } = useParams<'id'>()
+export function DetailPerson() {
+  const { id = "new" } = useParams<"id">();
   const navigate = useNavigate();
+  const isNew = id === "new";
 
+  const {
+    data: person,
+    isLoading: isFetching,
+    error: fetchError,
+  } = usePersonById(id);
+  const createMutation = useCreatePerson();
+  const updateMutation = useUpdatePerson(Number(id));
+  const deleteMutation = useDeletePerson();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState('');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+    setValue,
+  } = useForm<PersonFormData>({
+    resolver: zodResolver(PersonSchema),
+    mode: "onBlur",
+    defaultValues: {
+      nameComplete: "",
+      email: "",
+      cityId: undefined,
+    },
+  });
 
   useEffect(() => {
-    if (id !== 'new') {
-      setIsLoading(true);
-
-      PersonService.getById(Number(id))
-        .then((result) => {
-          setIsLoading(false);
-          if (result instanceof Error) {
-            alert(result.message);
-            navigate('/person');
-          } else {
-            setName(result.nameComplete);
-            formRef.current?.setData(result);
-          }
-        })
-    }else{
-      formRef.current?.setData({
-        nameComplete: '',
-        email: '',
-        cityId: '',
-      })
+    if (person && !isNew) {
+      setValue("nameComplete", person.nameComplete);
+      setValue("email", person.email);
+      setValue("cityId", person.cityId);
     }
-  }, [id]);
+  }, [person, isNew, setValue]);
 
-  const handleSave = (data: IFormData) => {
-
-    formValidationSchema.
-      validate(data, {abortEarly: false})
-      .then((dataValidate) => {
-        setIsLoading(true);
-
-        if (id === 'new') {
-          PersonService
-            .create(dataValidate)
-            .then((result) => {
-              setIsLoading(false);
-    
-              if (result instanceof Error) {
-                alert(result.message);
-              } else {
-                if (isSaveAndClose()) {
-                  navigate('/person');
-                } else {
-                  navigate(`/person/detail/${result}`);
-                }
-              }
-            });
+  const handleSave = useCallback(
+    async (data: PersonFormData) => {
+      try {
+        if (isNew) {
+          const newPersonId = await createMutation.mutateAsync(data);
+          navigate(`/person/detail/${newPersonId}`);
         } else {
-          PersonService
-            .updateById(Number(id), { id: Number(id), ...dataValidate })
-            .then((result) => {
-              setIsLoading(false);
-    
-              if (result instanceof Error) {
-                alert(result.message);
-              }else{
-                if (isSaveAndClose()) {
-                  navigate('/person');
-                } 
-              }
-            });
+          await updateMutation.mutateAsync(data);
         }
+      } catch (error) {
+        console.error("Erro ao salvar:", error);
+      }
+    },
+    [isNew, createMutation, updateMutation, navigate]
+  );
 
-      })
-      .catch((errors: yup.ValidationError) => {
-        const validationErrors: IVFormErrors = {};
+  const handleSaveAndBack = useCallback(
+    async (data: PersonFormData) => {
+      try {
+        if (isNew) {
+          await createMutation.mutateAsync(data);
+        } else {
+          await updateMutation.mutateAsync(data);
+        }
+        navigate("/person");
+      } catch (error) {
+        console.error("Erro ao salvar:", error);
+      }
+    },
+    [isNew, createMutation, updateMutation, navigate]
+  );
 
-        errors.inner.forEach(error => {
-          if(!error.path) return;
-
-          validationErrors[error.path] = error.message;
-        });
-
-        formRef.current?.setErrors(validationErrors);
-      });
-
-
-  };
-
-  const handleDelete = (id: number) => {
-    // eslint-disable-next-line no-restricted-globals
-    if (confirm('Realmente deseja apagar?')) {
-      PersonService.deleteById(id)
-        .then(result => {
-          if (result instanceof Error) {
-            alert(result.message);
-          } else {
-            alert('Registro apagado com sucesso');
-            navigate('/person');
-          }
-        });
+  const handleDelete = useCallback(async () => {
+    if (confirm("Realmente deseja apagar esta pessoa?")) {
+      try {
+        await deleteMutation.mutateAsync(Number(id));
+        navigate("/person");
+      } catch (error) {
+        console.error("Erro ao deletar:", error);
+      }
     }
-  }
+  }, [id, deleteMutation, navigate]);
 
+  const handleNew = useCallback(() => {
+    navigate("/person/detail/new");
+  }, [navigate]);
+
+  const handleBack = useCallback(() => {
+    navigate("/person");
+  }, [navigate]);
+
+  const isMutating =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
+  const mutationError =
+    createMutation.error || updateMutation.error || deleteMutation.error;
 
   return (
     <LayoutBasePage
-      title={id === 'new' ? 'Nova Pessoa' : name}
+      title={isNew ? "Nova Pessoa" : person?.nameComplete || "Carregando..."}
       toolBar={
         <ToolDetail
-          textButtonNew='Nova'
+          textButtonNew="Nova"
           viewButtonSaveAndBack
-          viewButtonNew={id !== 'new'}
-          viewButtonDelete={id !== 'new'}
-
-          onClickSave={save}
-          onClickSaveAndBack={saveAndClose}
-          onClickBack={() => navigate('/person')}
-          onClickDelete={() => handleDelete(Number(id))}
-          onClickNew={() => navigate('/person/detail/new')}
+          viewButtonNew={!isNew}
+          viewButtonDelete={!isNew}
+          onClickSave={handleSubmit(handleSave)}
+          onClickSaveAndBack={handleSubmit(handleSaveAndBack)}
+          onClickBack={handleBack}
+          onClickDelete={handleDelete}
+          onClickNew={handleNew}
+          disabled={isMutating || isFetching}
         />
       }
     >
+      {fetchError && !isFetching && (
+        <Alert severity="error" sx={{ m: 1 }}>
+          {(fetchError as Error).message || "Erro ao carregar pessoa"}
+        </Alert>
+      )}
 
-      <VForm ref={formRef} onSubmit={handleSave}>
-        <Box margin={1} display="flex" flexDirection="column" component={Paper} variant="outlined">
-
-          <Grid container direction="column" padding={2} spacing={2}>
-
-            {isLoading &&(
-              <Grid>
-                <LinearProgress variant='indeterminate' />
-              </Grid>
-            )}
-            <Grid item>
-              <Typography variant="h6">Geral</Typography>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={8} md={6} lg={4} xl={2} >
-                <VTextField
-                  fullWidth
-                  label="Nome Completo"
-                  name='nameComplete'
-                  disabled={isLoading}
-                  onChange={e => setName(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
-                <VTextField
-                  fullWidth
-                  label="E-mail"
-                  name='email'
-                  disabled={isLoading}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container item direction="row" spacing={2}>
-              <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
-                <AutoCompleteCity
-                  isExternalLoading={isLoading}
-                />
-              </Grid>
-            </Grid>
-
-          </Grid>
-
+      {isFetching && !isNew && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: 300,
+          }}
+        >
+          <CircularProgress />
         </Box>
+      )}
 
-        {/* {[1, 2, 3, 4].map((_, index) => (
-          <Scope key={} path={`addrees[${index}]`}>
-            <VTextField name='street' />
-            <VTextField name='number' />
-            <VTextField name='state' />
-            <VTextField name='city' />
-            <VTextField name='country' />
-          </Scope>
-        ))} */}
+      {mutationError && (
+        <Alert severity="error" sx={{ m: 1 }}>
+          {(mutationError as Error).message || "Erro ao processar"}
+        </Alert>
+      )}
 
-      </VForm>
+      {(!isFetching || isNew) && (
+        <VForm onSubmit={handleSubmit(handleSave)}>
+          <Box
+            margin={1}
+            display="flex"
+            flexDirection="column"
+            component={Paper}
+            variant="outlined"
+          >
+            <Grid container direction="column" padding={2} spacing={2}>
+              {isMutating && (
+                <Grid item>
+                  <LinearProgress variant="indeterminate" />
+                </Grid>
+              )}
 
+              <Grid item>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Geral
+                </Typography>
+              </Grid>
+
+              {/* Nome Completo */}
+              <Grid container item direction="row" spacing={2}>
+                <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
+                  <Controller
+                    name="nameComplete"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <VTextField
+                        {...field}
+                        fullWidth
+                        label="Nome Completo"
+                        disabled={isMutating}
+                        error={!!error}
+                        helperText={error?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Email */}
+              <Grid container item direction="row" spacing={2}>
+                <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
+                  <Controller
+                    name="email"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <VTextField
+                        {...field}
+                        fullWidth
+                        label="E-mail"
+                        type="email"
+                        disabled={isMutating}
+                        error={!!error}
+                        helperText={error?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid container item direction="row" spacing={2}>
+                <Grid item xs={12} sm={8} md={6} lg={4} xl={2}>
+                  <AutoCompleteCity control={control} disabled={isMutating} />
+                </Grid>
+              </Grid>
+            </Grid>
+          </Box>
+        </VForm>
+      )}
     </LayoutBasePage>
-
   );
-};
+}

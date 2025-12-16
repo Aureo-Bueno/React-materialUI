@@ -9,16 +9,8 @@
   ],
   "city": [
     {
-      "name": "Aparecida",
-      "id": 1
-    },
-    {
-      "name": "Roseira",
-      "id": 2
-    },
-    {
-      "name": "Guaratingueta",
-      "id": 3
+      "id": 3,
+      "name": "Potim"
     },
     {
       "name": "Lorena",
@@ -35,6 +27,10 @@
     {
       "name": "Taubate",
       "id": 7
+    },
+    {
+      "name": "asdsadasda",
+      "id": 8
     }
   ],
   "auth": {

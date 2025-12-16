@@ -1,137 +1,213 @@
-import { Icon, IconButton, LinearProgress, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom"
-import { ToolList } from "../../shared/components"
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableFooter,
+  TableHead,
+  TableRow,
+  Pagination,
+  LinearProgress,
+  Alert,
+  CircularProgress,
+  Typography,
+  Box,
+} from "@mui/material";
+import { Delete, Edit } from "@mui/icons-material";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ToolList } from "../../shared/components";
+import { LayoutBasePage } from "../../shared/layouts";
 import { Environment } from "../../shared/environment";
-import { useDebounce } from "../../shared/hooks";
-import { LayoutBasePage } from "../../shared/layouts"
-import { IListPerson, PersonService } from "../../shared/services/api/person/PersonService";
+import {
+  useDebounce,
+  useDeletePerson,
+  usePaginatedPeople,
+  useUrlSearchParams,
+} from "../../shared/hooks";
+import { PersonTableRow } from "./components/PersonTableRow";
 
+export function ListPerson() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { debounce } = useDebounce();
+  const { page, search, updateParams } = useUrlSearchParams();
 
-export const ListPerson: React.FC = () => {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isPending,
+    isFetching,
+    isPlaceholderData,
+  } = usePaginatedPeople({
+    page,
+    search,
+  });
 
-    const [searchParams, setSearchParams] = useSearchParams();
-    const { debounce } = useDebounce();
-    const navigate = useNavigate();
+  const peopleData = data || { data: [], totCount: 0 };
+  const deletePersonMutation = useDeletePerson();
 
-    const [rows, setRows] = useState<IListPerson[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [totCount, setTotCount] = useState(0);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await deletePersonMutation.mutateAsync(id);
+    },
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData(["people", { page, search }], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: oldData.data.filter((person: any) => person.id !== deletedId),
+          totCount: oldData.totCount - 1,
+        };
+      });
+    },
+    onError: (error) => {
+      console.error("Erro ao deletar:", error);
+    },
+  });
 
-    const search = useMemo(() => {
-        return searchParams.get('search') || '';
-    }, [searchParams]);
+  const handleSearchChange = useCallback(
+    (searchText: string) => {
+      debounce(() => {
+        updateParams(1, searchText);
+      });
+    },
+    [debounce, updateParams]
+  );
 
-    const page = useMemo(() => {
-        return Number(searchParams.get('page') || '1');
-    }, [searchParams]);
+  const handlePageChange = useCallback(
+    (_: React.ChangeEvent<unknown>, newPage: number) => {
+      updateParams(newPage, search);
+    },
+    [search, updateParams]
+  );
 
-    useEffect(() => {
-        setIsLoading(true);
+  const handleNew = useCallback(() => {
+    navigate("/person/detail/new");
+  }, [navigate]);
 
-        debounce(() => {
-            PersonService.getAll(page, search)
-                .then((result) => {
-                    setIsLoading(false);
-                    if (result instanceof Error) {
-                        alert(result.message);
-                    } else {
-                        console.log(result);
+  const handleDelete = useCallback(
+    async (id: number) => {
+      await deleteMutation.mutateAsync(id);
+    },
+    [deleteMutation]
+  );
 
-                        setTotCount(result.totCount);
-                        setRows(result.data);
-                    }
-                });
-        });
-    }, [search, page]);
+  const totalPages = Math.ceil(peopleData.totCount / Environment.LIMIT_LINES);
 
-    const handleDelete = (id: number) => {
-        
-        // eslint-disable-next-line no-restricted-globals
-        if (confirm('Realmente deseja apagar?')) {
-            PersonService.deleteById(id)
-            .then(result => {
-                if (result instanceof Error) {
-                    alert(result.message);                    
-                } else{
-                    setRows(oldRows => {
-                        return[
-                            ...oldRows.filter(oldRow => oldRow.id !== id),
-                        ];
-                    });
-                    alert('Registro apagado com sucesso');
+  return (
+    <LayoutBasePage
+      title="Listagem de Pessoas"
+      toolBar={
+        <ToolList
+          textButtonNew="Nova Pessoa"
+          viewInputSearch
+          textSearch={search}
+          onClickNew={handleNew}
+          alterTextSearch={handleSearchChange}
+        />
+      }
+    >
+      <TableContainer component={Paper} variant="outlined" sx={{ m: 1 }}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "background.paper" }}>
+              <TableCell width="80px" sx={{ fontWeight: 600 }}>
+                Ações
+              </TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nome Completo</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {isPending && (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
+                  <CircularProgress size={40} />
+                </TableCell>
+              </TableRow>
+            )}
+
+            {isError && !isPending && (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  <Alert severity="error" sx={{ my: 1 }}>
+                    {(error as Error)?.message || "Erro ao carregar dados"}
+                  </Alert>
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isPending && peopleData.totCount === 0 && (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
+                  <Typography variant="body1" color="textSecondary">
+                    {Environment.LIST_NULL}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+
+            {peopleData.data.map((person) => (
+              <PersonTableRow
+                key={person.id}
+                person={person}
+                onDelete={handleDelete}
+                onEdit={(id) => navigate(`/person/detail/${id}`)}
+                isDeleting={
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === person.id
                 }
-            });
-        }
-    }
+              />
+            ))}
+          </TableBody>
 
-    return (
-        <LayoutBasePage
-            title='Listagem de Pessoas'
-            toolBar={
-                <ToolList
-                    textButtonNew='Nova Pessoa'
-                    viewInputSearch
-                    textSearch={search}
-                    onClickNew={() => navigate('/person/detail/new')}
-                    alterTextSearch={text => setSearchParams({ search: text, page: '1'}, { replace: true })}
-                />
-            }
-        >
-            <TableContainer component={Paper} variant="outlined" sx={{ m: 1 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Ações</TableCell>
-                            <TableCell>Nome Completo</TableCell>
-                            <TableCell>Email</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {rows.map(row => (
-                            <TableRow key={row.id}>
-                                <TableCell>
-                                    <IconButton size="small" onClick={() => handleDelete(row.id)}>
-                                        <Icon>delete</Icon>
-                                    </IconButton>
-                                    <IconButton size="small" onClick={() => navigate(`/person/detail/${row.id}`)}>
-                                        <Icon>edit</Icon>
-                                    </IconButton>
-                                </TableCell>
-                                <TableCell>{row.nameComplete}</TableCell>
-                                <TableCell>{row.email}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
+          {/* Footer */}
+          <TableFooter>
+            {/* Loading Bar */}
+            {isFetching && (
+              <TableRow>
+                <TableCell colSpan={3} sx={{ p: 0 }}>
+                  <LinearProgress />
+                </TableCell>
+              </TableRow>
+            )}
 
-                    {totCount === 0 && !isLoading && (
-                        <caption>{Environment.LIST_NULL}</caption>
-                    )}
+            {/* Pagination */}
+            {peopleData.totCount > Environment.LIMIT_LINES && !isPending && (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 2 }}>
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={handlePageChange}
+                    disabled={isPlaceholderData || isFetching}
+                    variant="outlined"
+                    shape="rounded"
+                  />
+                </TableCell>
+              </TableRow>
+            )}
 
-                    <TableFooter>
-                        {isLoading && (
-                            <TableRow>
-                                <TableCell colSpan={3}>
-                                    <LinearProgress variant='indeterminate' />
-
-                                </TableCell>
-                            </TableRow>
-                        )}
-                        {(totCount > 0 && totCount > Environment.LIMIT_LINES) && (
-                            <TableRow>
-                                <TableCell colSpan={3}>
-                                    <Pagination
-                                        page={page}
-                                        count={Math.ceil(totCount / Environment.LIMIT_LINES)}
-                                        onChange={(_, newPage) => setSearchParams({ search, page: newPage.toString() }, { replace: true })}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableFooter>
-                </Table>
-            </TableContainer>
-
-        </LayoutBasePage>
-    )
+            {peopleData.totCount > 0 && !isPending && (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 1 }}>
+                  <Typography variant="caption" color="textSecondary">
+                    Mostrando {peopleData.data.length} de {peopleData.totCount}{" "}
+                    registros
+                    {isFetching && " (atualizando...)"}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableFooter>
+        </Table>
+      </TableContainer>
+    </LayoutBasePage>
+  );
 }

@@ -1,87 +1,109 @@
-import { Autocomplete, CircularProgress, TextField } from "@mui/material";
-import { useField } from "@unform/core";
-import { useEffect, useMemo, useState } from "react";
-import { useDebounce } from "../../../shared/hooks";
+import {
+  Autocomplete,
+  CircularProgress,
+  TextField,
+  type AutocompleteProps,
+} from "@mui/material";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, type Control, type FieldPath } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { CitiesService } from "../../../shared/services/api/cities/CitiesService";
-
+import { PersonFormData } from "../../../shared/schemas";
+import { useDebounce } from "../../../shared/hooks";
 
 type TAutoCompleteOption = {
-    id: number;
-    label: string;
-}
+  id: number;
+  label: string;
+};
 
 interface IAutoCompleteCityProps {
-    isExternalLoading?: boolean;
+  control: Control<PersonFormData>;
+  disabled?: boolean;
 }
-export const AutoCompleteCity: React.FC<IAutoCompleteCityProps> = ({ isExternalLoading = false }) => {
-   
-    const {fieldName, registerField, defaultValue, error, clearError} = useField('cityId');
-    const { debounce } = useDebounce();
 
-   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
-   
-   const [options, setOptions] = useState<TAutoCompleteOption[]>([]);
-   const [isLoading, setIsLoading] = useState(false);
-   const [search, setSearch] = useState('');
+export function AutoCompleteCity({
+  control,
+  disabled = false,
+}: IAutoCompleteCityProps) {
+  const { debounce } = useDebounce(300);
+  const [search, setSearch] = useState("");
 
-   useEffect(() => {
-       registerField({
-           name: fieldName,
-           getValue: () => selectedId ,
-           setValue: (_, newSelectedId) => selectedId,
+  const { data: citiesData, isLoading } = useQuery({
+    queryKey: ["cities", "autocomplete", search],
+    queryFn: async () => {
+      const result = await CitiesService.getAll(1, search);
 
-       });
-   }, [registerField, fieldName, selectedId]);
-    
-   useEffect(() => {
-        setIsLoading(true);
+      if (result instanceof Error) {
+        throw new Error(result.message);
+      }
 
-        debounce(() => {
-            CitiesService.getAll(1,search )
-                .then((result) => {
-                    setIsLoading(false);
-                    if (result instanceof Error) {
-                    // alert(result.message);
-                    } else {
-                        console.log(result);
+      return result.data.map((city) => ({
+        id: city.id,
+        label: city.name,
+      }));
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: search.length > 0,
+  });
 
-                        setOptions(result.data.map(city => ({id: city.id, label: city.name})));
-                    }
-                });
-        });
-   }, [search]);
+  const options = citiesData || [];
 
-   const autoCompleteSelectedOption = useMemo(() => {
-        if(!selectedId) return null;
+  const handleInputChange = useCallback(
+    (_: React.SyntheticEvent, newValue: string) => {
+      debounce(() => {
+        setSearch(newValue);
+      });
+    },
+    [debounce]
+  );
 
-        const selectedOption = options.find(opcao => opcao.id === selectedId);
-        if(!selectedOption) return null;
-
-        return selectedOption;
-    }, [selectedId, options]);
-   
-    return (
-        <Autocomplete 
-          openText='Abrir'
-          closeText='Fechar'
-          noOptionsText='Sem Opções'
-          loadingText='Carregando'
-
-          value={autoCompleteSelectedOption}
-          loading={isLoading}
-          disabled={isExternalLoading}
-          popupIcon={isExternalLoading ||isLoading ? <CircularProgress size={28} /> : undefined}
-          onInputChange={(_, newValue) => setSearch(newValue)}
+  return (
+    <Controller
+      name="cityId"
+      control={control}
+      render={({ field, fieldState: { error } }) => (
+        <Autocomplete
+          {...field}
           options={options}
-          onChange={(_, newValue) => {setSelectedId(newValue?.id); setSearch(''); clearError();}}
+          getOptionLabel={(option: TAutoCompleteOption | number) => {
+            if (typeof option === "number") {
+              return options.find((o) => o.id === option)?.label || "";
+            }
+            return option.label;
+          }}
+          isOptionEqualToValue={(option, value) => {
+            if (typeof value === "number") {
+              return option.id === value;
+            }
+            return option.id === value?.id;
+          }}
+          value={
+            field.value
+              ? options.find((o) => o.id === field.value) || null
+              : null
+          }
+          onChange={(_, newValue) => {
+            field.onChange(newValue?.id || null);
+          }}
+          onInputChange={handleInputChange}
+          loading={isLoading}
+          disabled={disabled || isLoading}
+          fullWidth
+          openText="Abrir"
+          closeText="Fechar"
+          noOptionsText={search ? "Sem Opções" : "Digite para buscar"}
+          loadingText="Carregando"
+          popupIcon={isLoading ? <CircularProgress size={20} /> : undefined}
           renderInput={(params) => (
-              <TextField 
-               {...params}
-               label="Cidade"
-               error={!!error}
-               helperText={error}
-              />
-            )}
+            <TextField
+              {...params}
+              label="Cidade"
+              error={!!error}
+              helperText={error?.message}
+            />
+          )}
         />
-    );
-};
+      )}
+    />
+  );
+}

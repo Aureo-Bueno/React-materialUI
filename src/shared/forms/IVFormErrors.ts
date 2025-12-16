@@ -1,5 +1,3 @@
-
-
-export interface IVFormErrors{
-    [key: string]: string;
-};
+export interface IVFormErrors {
+  [key: string]: string;
+}
